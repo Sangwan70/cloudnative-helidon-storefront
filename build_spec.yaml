@@ -1,0 +1,120 @@
+version: 0.1
+component: build
+timeoutInSeconds: 6000
+runAs: root
+shell: bash
+
+env:
+  variables:
+     JAVA_HOME: "javahome"
+  vaultVariables:
+     OCIR_HOST_VAULT: ocid1.vaultsecret.oc1.iad.amaaaaaay6opsnyagj6chchw6kn5h3xr5gmcbbberkvbgno4mclqtolju6nq
+     OCIR_STORAGE_NAMESPACE_VAULT: ocid1.vaultsecret.oc1.iad.amaaaaaay6opsnya4tko3ibgow54ccwpaow7cb7dp3hs2nxhxvgyb24nycaq
+  exportedVariables:
+    - STOREFRONT_VERSION
+    - OCIR_HOST
+    - OCIR_STORAGE_NAMESPACE
+steps:
+  - type: Command
+    name: "Extract Exported Variables"
+    timeoutInSeconds: 10
+    command: |
+      echo "Path is"
+      echo "$PATH"
+      echo "Java Home is "
+      echo "$JAVA_HOME"
+      cd $(OCI_PRIMARY_SOURCE_DIR"
+      echo "Extracting exported variables - Working in `pwd`"
+      export STOREFRONT_VERSION=`grep "VERSION = " helidon-storefront-full/src/main/java/com/oracle/labs/helidon/storefront/resources/StatusResource.java | awk '${print $7}' | sed -e 's/"//g' -e s'/;//'`
+      echo "STOREFRONT_VERSION: " $STOREFRONT_VERSION
+      echo "transfering the OCIR_HOST and OCIR_STORAGE_NAMESPACE valt variables"
+      export OCIR_HOST=$OCIR_HOST_VAULT
+      echo OCIR_HOST is $OCIR_HOST
+      export OCIR_STORAGE_NAMESPACE=$OCIR_STORAGE_NAMESPACE_VAULT
+      echo OCIR_STORAGE_NAMESPACE is $OCIR_STORAGE_NAMESPACE
+      echo "docker images will be stored to ${OCIR_HOST}/${OCIR_STORAGE_NAMESPACE}/${YOUR_INITIALS}/storefront:${STOREFRONT_VERSION}"
+    onFailure:
+      - type: Command
+        timeoutInSecond:  40
+        command: |
+          echo "Handling Failure"
+          echo "Failure successfully handled"
+        timeoutInSeconds: 400
+        runAs: root
+  - type: Command
+    name: "Install Local JDK17"
+    timeoutInSeconds: 10000
+    command: |
+      cd ~
+      mkdir InstalledSoftware
+      cd InstalledSoftware
+      wget -q https://download.oracle.com/java/17/archive/jdk-17.0.8_linux-x64_bin.tar.gz
+      tar xf *tar.gz
+      rm *tar.gz
+      ls -l
+      export JAVA_HOME=`echo -n ~/InstalledSoftware/jdk-*`
+      export PATH=$JAVA_HOME/bin:$PATH
+      echo path is $PATH
+      echo JAVA_HOME is $JAVA_HOME
+      java -version
+    onFailure:
+      - type: Command
+        timeoutInSecond:  40
+        command: |
+          echo "Handling Failure"
+          echo "Failure successfully handled"
+        timeoutInSeconds: 400
+        runAs: root
+  - type: Command
+    name: "Confirm Variables and Versions"
+    timeoutInSeconds: 10
+    command: |
+      echo PATH is $PATH
+      echo JAVA_HOME is $JAVA_HOME
+      echo "STOREFRONT_VERSION is $STOREFRONT_VERSION"
+      echo OCIR_HOST is $OCIR_HOST
+      echo OCIR_STORAGE_NAMESPACE is $OCIR_STORAGE_NAMESPACE
+      echo OCI_PRIMARY_SOURCE_DIR is ${OCI_PRIMARY_SOURCE_DIR}
+      echo "Java Installed version is `java -version`"
+      echo "Maven Version is `mvn -v`"
+    onFailure:
+      - type: Command
+        timeoutInSecond:  40
+        command: |
+          echo "Handling Failure"
+          echo "Failure successfully handled"
+        timeoutInSeconds: 400
+        runAs: root
+  - type: Command
+    name: "Build Source and Pack into a Docker Image"
+    timeoutInSeconds: 400
+    command: |
+      cd ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full
+      echo "Running Maven Build Command in `pwd`"
+      mvn package
+      docker images
+
+  - type: Command
+    name: "Fix Resource Location in Container Image"
+    timeoutInSeconds: 60
+    command: |
+      cd ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full
+      echo "Running docker update in `pwd`"
+      docker build --tag storefront:latest --file Dockerfile .
+      echo "Docker Images are `docker images`"
+outputArtifacts:
+  - name: storefron_container_image
+    type: DOCKER_IMAGE
+    location: storefront_latest
+  - name: service_yaml
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/serviceStorefront.yaml
+  - name: ingressRules_yaml
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/ingressStorefrontRules.yaml
+  - name: deployment_yaml
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/storefront-deployment.yaml
+  - name:
+    type:
+    location: 
