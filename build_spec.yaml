@@ -100,16 +100,16 @@ steps:
       echo "Running docker update in `pwd`"
       docker build --tag storefront:latest --file Dockerfile .
       echo "Docker Images are `docker images`"
-outputArtifacts:
-  - name: storefron_container_image
-    type: DOCKER_IMAGE
-    location: storefront_latest
-  - name: service_yaml
-    type: BINARY
-    location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/serviceStorefront.yaml
-  - name: ingressRules_yaml
-    type: BINARY
-    location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/ingressStorefrontRules.yaml
-  - name: deployment_yaml
-    type: BINARY
-    location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/storefront-deployment.yaml
+  outputArtifacts:
+   - name: storefront_container_image
+     type: DOCKER_IMAGE
+     location: storefront_latest
+   - name: service_yaml
+     type: BINARY
+     location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/serviceStorefront.yaml
+   - name: ingressRules_yaml
+     type: BINARY
+     location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/ingressStorefrontRules.yaml
+   - name: deployment_yaml
+     type: BINARY
+     location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/storefront-deployment.yaml
