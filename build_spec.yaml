@@ -91,7 +91,6 @@ steps:
       echo "Running Maven Build Command in `pwd`"
       mvn package
       docker images
-
   - type: Command
     name: "Fix Resource Location in Container Image"
     timeoutInSeconds: 60
@@ -103,7 +102,7 @@ steps:
 outputArtifacts:
   - name: storefront_container_image
     type: DOCKER_IMAGE
-    location: storefront_latest
+    location: storefront:latest
   - name: service_yaml
     type: BINARY
     location: ${OCI_PRIMARY_SOURCE_DIR}/helidon-storefront-full/yaml/deployment/serviceStorefront.yaml
