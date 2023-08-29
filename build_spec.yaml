@@ -19,11 +19,9 @@ steps:
     name: "Extract Exported Variables"
     timeoutInSeconds: 10
     command: |
-      echo "Path is"
-      echo "$PATH"
-      echo "Java Home is "
-      echo "$JAVA_HOME"
-      cd $(OCI_PRIMARY_SOURCE_DIR"
+      echo "Path is $PATH"
+      echo "Java Home is $JAVA_HOME"
+      cd ${OCI_PRIMARY_SOURCE_DIR}
       echo "Extracting exported variables - Working in `pwd`"
       export STOREFRONT_VERSION=`grep "VERSION = " helidon-storefront-full/src/main/java/com/oracle/labs/helidon/storefront/resources/StatusResource.java | awk '${print $7}' | sed -e 's/"//g' -e s'/;//'`
       echo "STOREFRONT_VERSION: " $STOREFRONT_VERSION
